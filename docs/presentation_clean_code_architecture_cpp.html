@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clean Code & Clean Architecture C++ — Atelier 1h30 (CEFTI)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          },
+          colors: {
+            darkbg: '#090d16',
+            cardbg: '#111827',
+            bordercol: '#1f293d',
+            accent: '#38bdf8',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #090d16;
+      color: #f1f5f9;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    pre::-webkit-scrollbar { width: 6px; height: 6px; }
+    pre::-webkit-scrollbar-track { background: #0d1322; }
+    pre::-webkit-scrollbar-thumb { background: #22304a; border-radius: 3px; }
+
+    .bad-line {
+      background-color: rgba(239, 68, 68, 0.16);
+      border-left: 3px solid #ef4444;
+      display: block;
+      margin: 0 -1rem;
+      padding: 1px 1rem;
+    }
+    .good-line {
+      background-color: rgba(16, 185, 129, 0.16);
+      border-left: 3px solid #10b981;
+      display: block;
+      margin: 0 -1rem;
+      padding: 1px 1rem;
+    }
+    .code-tag-bad {
+      background-color: #ef4444;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-left: 8px;
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Inter', sans-serif;
+    }
+    .code-tag-good {
+      background-color: #10b981;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-left: 8px;
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .slide {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.25s ease-in-out;
+    }
+    .slide.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .kw { color: #f472b6; font-weight: 600; }
+    .fn { color: #60a5fa; }
+    .str { color: #34d399; }
+    .cm { color: #64748b; font-style: italic; }
+    .num { color: #fbbf24; }
+    .type { color: #c084fc; font-weight: 500; }
+  </style>
+</head>
+<body class="h-screen flex flex-col justify-between select-none">
+
+  <!-- HEADER NAVBAR -->
+  <header class="h-14 bg-cardbg border-b border-bordercol px-6 flex items-center justify-between z-20">
+    <div class="flex items-center space-x-3">
+      <div class="bg-gradient-to-r from-sky-500 to-blue-700 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider flex items-center gap-1.5">
+        <i class="fa-solid fa-code"></i>
+        <span>CEFTI • C++ / CMAKE</span>
+      </div>
+      <h1 class="text-sm font-semibold text-slate-200 hidden md:block">
+        Clean Code & Clean Architecture C++ — <span class="text-slate-400 font-normal">Atelier Pratique (1h30)</span>
+      </h1>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <div class="relative">
+        <select id="slideSelect" onchange="jumpToSlide(this.value)" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-sky-500 cursor-pointer">
+        </select>
+      </div>
+
+      <button onclick="toggleFullScreen()" title="Plein écran (F)" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
+        <i class="fa-solid fa-expand text-sm"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 relative overflow-hidden p-4 md:p-6 flex justify-center items-center">
+
+    <!-- ==================== SLIDE 0: ACCUEIL ==================== -->
+    <div class="slide active slide-container w-full max-w-6xl h-full flex-col justify-center items-center text-center space-y-6">
+      <div class="inline-flex items-center space-x-2 bg-sky-950/80 border border-sky-800 text-sky-400 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>CEFTI — Université de Sherbrooke • Atelier 1h30</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
+        Clean Code & Clean Architecture<br>
+        <span class="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+          C++, CMake &amp; Tests Automatisés
+        </span>
+      </h1>
+      <p class="max-w-2xl text-slate-400 text-base md:text-lg leading-relaxed">
+        Appliquez les principes fondamentaux de propreté logicielle et d'architecture découplée hors moteur, avec validation instantanée par tests unitaires (<code class="text-sky-400 font-mono">doctest</code>).
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl w-full pt-4">
+        <div class="bg-cardbg border border-bordercol p-4 rounded-xl text-left">
+          <div class="text-sky-400 font-bold text-lg mb-1">Exercice 1 (25 min)</div>
+          <div class="text-white font-semibold text-sm">Clean Code &amp; Guard Clauses</div>
+          <div class="text-slate-400 text-xs mt-1">Early Returns, lisibilité et principe DRY</div>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-4 rounded-xl text-left">
+          <div class="text-emerald-400 font-bold text-lg mb-1">Exercice 2 (30 min)</div>
+          <div class="text-white font-semibold text-sm">Factory &amp; Polymorphisme</div>
+          <div class="text-slate-400 text-xs mt-1">ICharacter, CharacterFactory &amp; RAII</div>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-4 rounded-xl text-left">
+          <div class="text-amber-400 font-bold text-lg mb-1">Exercice 3 (25 min)</div>
+          <div class="text-white font-semibold text-sm">Préférer la composition à l'héritage</div>
+          <div class="text-slate-400 text-xs mt-1">RangedAttackComponent (Archer &amp; Mage)</div>
+        </div>
+      </div>
+
+      <button onclick="nextSlide()" class="mt-6 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-8 py-3 rounded-xl transition shadow-lg shadow-sky-500/20 flex items-center space-x-2">
+        <span>Commencer l'atelier</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+
+    <!-- ==================== SLIDE 1: SETUP & ENVIRONNEMENT ==================== -->
+    <div class="slide slide-container w-full max-w-5xl h-full flex-col justify-center items-center space-y-6">
+      <div class="text-center space-y-2">
+        <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">00:00 - 00:10 • Mise en route</span>
+        <h2 class="text-3xl font-extrabold text-white">Pourquoi C++ + CMake + doctest ?</h2>
+        <p class="text-slate-400 text-sm max-w-2xl">
+          En Clean Architecture, la logique métier (Domain) doit être <strong>indépendante du moteur</strong> (Unreal Engine). Compiler et tester en C++ pur prend moins d'une seconde.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <div class="bg-cardbg border border-bordercol p-5 rounded-xl space-y-3">
+          <div class="text-sky-400 font-bold text-sm flex items-center gap-2">
+            <i class="fa-solid fa-terminal"></i>
+            <span>Commandes universelles (VS Code, Rider, VS 2022)</span>
+          </div>
+          <pre class="bg-slate-950 p-4 rounded-lg text-xs font-mono text-slate-200 overflow-auto leading-relaxed"><span class="cm"># 1. Cloner le dépôt</span>
+git clone &lt;url-du-repo&gt;
+cd CleanArchitectureTP
+
+<span class="cm"># 2. Configurer et compiler</span>
+cmake -B build
+cmake --build build
+
+<span class="cm"># 3. Lancer les tests (Red -&gt; Green)</span>
+ctest --test-dir build -C Debug --output-on-failure</pre>
+        </div>
+
+        <div class="bg-cardbg border border-bordercol p-5 rounded-xl space-y-3">
+          <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
+            <i class="fa-solid fa-vial"></i>
+            <span>État des tests dans Visual Studio</span>
+          </div>
+          <ul class="space-y-2.5 text-xs text-slate-300 leading-relaxed">
+            <li class="flex items-start gap-2">
+              <span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded font-bold shrink-0">RED</span>
+              <span>Au départ, les tests unitaires échouent : le code contient des bugs et des <em>code smells</em>.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold shrink-0">GREEN</span>
+              <span>Corrigez et implémentez les classes dans <code class="text-sky-300">src/</code> jusqu'à ce que les tests passent à 100 %.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 2: POURQUOI LE CLEAN CODE EN EQUIPE ==================== -->
+    <div class="slide slide-container w-full max-w-6xl h-full flex-col justify-center items-center space-y-6">
+      <div class="text-center space-y-3">
+        <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Avant de coder • Une responsabilité collective</span>
+        <h2 class="text-3xl font-extrabold text-white">Le Clean Code facilite le travail d'équipe</h2>
+        <p class="text-slate-300 text-sm max-w-3xl">
+          Un code propre est facile à lire, comprendre, tester et modifier. Il aide toute l'équipe à travailler sur le même projet avec moins de friction.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+        <div class="bg-cardbg border border-bordercol p-5 rounded-xl space-y-2">
+          <div class="text-sky-400 font-bold text-sm"><i class="fa-solid fa-book-open mr-2"></i>Compréhension partagée</div>
+          <p class="text-slate-300 text-xs leading-relaxed">Des noms clairs et une structure cohérente permettent aux collègues de comprendre le code sans dépendre de son auteur.</p>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-5 rounded-xl space-y-2">
+          <div class="text-emerald-400 font-bold text-sm"><i class="fa-solid fa-code-merge mr-2"></i>Collaboration plus fluide</div>
+          <p class="text-slate-300 text-xs leading-relaxed">Des responsabilités bien séparées facilitent les revues de code et réduisent les conflits quand plusieurs personnes contribuent.</p>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-5 rounded-xl space-y-2">
+          <div class="text-amber-400 font-bold text-sm"><i class="fa-solid fa-bug-slash mr-2"></i>Moins de régressions</div>
+          <p class="text-slate-300 text-xs leading-relaxed">Un code simple et testable aide à repérer les erreurs plus tôt et à vérifier qu'une modification ne casse pas l'existant.</p>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-5 rounded-xl space-y-2">
+          <div class="text-violet-400 font-bold text-sm"><i class="fa-solid fa-screwdriver-wrench mr-2"></i>Maintenance durable</div>
+          <p class="text-slate-300 text-xs leading-relaxed">L'équipe peut faire évoluer le projet et accueillir de nouveaux membres plus facilement, sans accumuler de complexité inutile.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 3: PRINCIPES GENERAUX DU CLEAN CODE ==================== -->
+    <div class="slide slide-container w-full max-w-6xl h-full flex-col justify-center items-center space-y-5">
+      <div class="text-center space-y-2">
+        <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Repères • Des principes, pas des règles absolues</span>
+        <h2 class="text-3xl font-extrabold text-white">Quelques principes généraux du Clean Code</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+        <div class="bg-cardbg border border-bordercol p-4 rounded-xl space-y-2">
+          <div class="text-sky-400 font-bold text-sm"><i class="fa-solid fa-tag mr-2"></i>Choisir des noms explicites</div>
+          <p class="text-slate-300 text-xs leading-relaxed">Un nom doit aider à comprendre le rôle d'une variable, d'une fonction ou d'une classe sans devoir deviner.</p>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-4 rounded-xl space-y-2">
+          <div class="text-emerald-400 font-bold text-sm"><i class="fa-solid fa-scissors mr-2"></i>Garder les fonctions ciblées</div>
+          <p class="text-slate-300 text-xs leading-relaxed">Une fonction devrait accomplir une tâche cohérente. La rendre courte aide souvent à la lire, la tester et la réutiliser.</p>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-4 rounded-xl space-y-2">
+          <div class="text-amber-400 font-bold text-sm"><i class="fa-solid fa-copy mr-2"></i>Éviter la duplication</div>
+          <p class="text-slate-300 text-xs leading-relaxed">Quand une même règle métier est répétée, centralisez-la afin de n'avoir qu'un seul endroit à corriger et à tester.</p>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-4 rounded-xl space-y-2">
+          <div class="text-violet-400 font-bold text-sm"><i class="fa-solid fa-diagram-project mr-2"></i>Limiter la complexité</div>
+          <p class="text-slate-300 text-xs leading-relaxed">Préférez un flot de contrôle simple, des conditions faciles à lire et peu d'imbrications.</p>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-4 rounded-xl space-y-2">
+          <div class="text-rose-400 font-bold text-sm"><i class="fa-solid fa-shield-halved mr-2"></i>Traiter les cas limites</div>
+          <p class="text-slate-300 text-xs leading-relaxed">Validez les entrées et rendez explicite le comportement attendu en cas d'erreur ou de donnée invalide.</p>
+        </div>
+        <div class="bg-cardbg border border-bordercol p-4 rounded-xl space-y-2">
+          <div class="text-cyan-400 font-bold text-sm"><i class="fa-solid fa-vial mr-2"></i>Écrire du code vérifiable</div>
+          <p class="text-slate-300 text-xs leading-relaxed">Des responsabilités bien séparées rendent le comportement plus facile à tester et à modifier avec confiance.</p>
+        </div>
+      </div>
+
+      <p class="text-slate-400 text-xs text-center max-w-4xl">
+        La taille d'une fonction est un repère, pas une limite universelle : une fonction de moins de 100 lignes peut tout de même faire trop de choses. Visez surtout une responsabilité claire et une lecture facile.
+      </p>
+    </div>
+
+    <!-- ==================== SLIDE 4: EX 1 - GUARD CLAUSES ==================== -->
+    <div class="slide slide-container w-full max-w-7xl h-full flex-col justify-between">
+      <div class="bg-cardbg border border-bordercol p-4 rounded-xl mb-3 flex items-start space-x-3">
+        <div class="bg-sky-500/10 text-sky-400 p-2.5 rounded-lg border border-sky-500/20 shrink-0">
+          <i class="fa-solid fa-code-branch text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Diapos Exercice 1 • Clean Code</span>
+            <span class="text-slate-600">•</span>
+            <h3 class="text-white font-bold text-base">Guard Clauses &amp; Early Return</h3>
+          </div>
+          <p class="text-slate-300 text-xs md:text-sm mt-1">
+            <strong>Règle :</strong> Évitez les imbrications profondes de <code class="text-sky-300">if</code> (la "pyramide de la mort"). Traitez immédiatement les cas invalides (dégâts négatifs, cible nulle, personnage mort) via des retours anticipés.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+        <div class="bg-slate-950 border border-red-900/50 rounded-xl flex flex-col overflow-hidden">
+          <div class="bg-red-950/40 border-b border-red-900/50 px-4 py-2 flex justify-between items-center text-xs font-bold text-red-400">
+            <span><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> CODE NON CONFORME</span>
+            <span class="bg-red-900/60 text-red-200 px-2 py-0.5 rounded">Pyramide d'imbrications</span>
+          </div>
+          <pre class="p-4 text-xs font-mono overflow-auto flex-1 leading-relaxed"><span class="type">void</span> Warrior::<span class="fn">TakeDamage</span>(<span class="type">float</span> rawDamage) {
+<span class="bad-line">    <span class="kw">if</span> (IsAlive()) { <span class="code-tag-bad">❌ Niveau 1</span></span>
+<span class="bad-line">        <span class="kw">if</span> (rawDamage &gt; <span class="num">0.0f</span>) { <span class="code-tag-bad">❌ Niveau 2</span></span>
+<span class="bad-line">            <span class="kw">if</span> (armor &gt;= <span class="num">0.0f</span>) { <span class="code-tag-bad">❌ Niveau 3</span></span>
+                <span class="type">float</span> dmg = rawDamage * (<span class="num">1.0f</span> - armor);
+                health -= dmg;
+            }
+        }
+    }
+}</pre>
+        </div>
+
+        <div class="bg-slate-950 border border-emerald-900/50 rounded-xl flex flex-col overflow-hidden">
+          <div class="bg-emerald-950/40 border-b border-emerald-900/50 px-4 py-2 flex justify-between items-center text-xs font-bold text-emerald-400">
+            <span><i class="fa-solid fa-circle-check mr-1.5"></i> CODE CONFORME</span>
+            <span class="bg-emerald-900/60 text-emerald-200 px-2 py-0.5 rounded">Guard Clauses (Code Plat)</span>
+          </div>
+          <pre class="p-4 text-xs font-mono overflow-auto flex-1 leading-relaxed"><span class="type">void</span> Warrior::<span class="fn">TakeDamage</span>(<span class="type">float</span> rawDamage) {
+<span class="good-line">    <span class="kw">if</span> (!IsAlive()) <span class="kw">return</span>; <span class="code-tag-good">✅ Guard État</span></span>
+<span class="good-line">    <span class="kw">if</span> (rawDamage &lt;= <span class="num">0.0f</span>) <span class="kw">return</span>; <span class="code-tag-good">✅ Guard Entrée</span></span>
+
+    <span class="cm">// Chemin nominal fluide sans indentation</span>
+    <span class="kw">const float</span> finalDamage = CombatRules::CalculateDamage(rawDamage, armor);
+    health = std::max(<span class="num">0.0f</span>, health - finalDamage);
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 5: EX 1 - DRY ==================== -->
+    <div class="slide slide-container w-full max-w-7xl h-full flex-col justify-between">
+      <div class="bg-cardbg border border-bordercol p-4 rounded-xl mb-3 flex items-start space-x-3">
+        <div class="bg-sky-500/10 text-sky-400 p-2.5 rounded-lg border border-sky-500/20 shrink-0">
+          <i class="fa-solid fa-clone text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Diapos Exercice 1 • Clean Code</span>
+            <span class="text-slate-600">•</span>
+            <h3 class="text-white font-bold text-base">DRY (Don't Repeat Yourself) &amp; Fonctions Pures</h3>
+          </div>
+          <p class="text-slate-300 text-xs md:text-sm mt-1">
+            <strong>Règle :</strong> Ne dupliquez pas les formules métier (ex: calcul d'armure) dans plusieurs classes. Centralisez-les dans une fonction pure facilement testable unitairement.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+        <div class="bg-slate-950 border border-red-900/50 rounded-xl flex flex-col overflow-hidden">
+          <div class="bg-red-950/40 border-b border-red-900/50 px-4 py-2 flex justify-between items-center text-xs font-bold text-red-400">
+            <span><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> CODE NON CONFORME</span>
+            <span class="bg-red-900/60 text-red-200 px-2 py-0.5 rounded">Formule dupliquée</span>
+          </div>
+          <pre class="p-4 text-xs font-mono overflow-auto flex-1 leading-relaxed"><span class="kw">class</span> <span class="type">Warrior</span> {
+    <span class="type">void</span> <span class="fn">TakeDamage</span>(<span class="type">float</span> raw) {
+<span class="bad-line">        health -= raw * (<span class="num">1.0f</span> - std::clamp(armor, <span class="num">0.0f</span>, <span class="num">1.0f</span>)); <span class="code-tag-bad">❌ Dupliqué</span></span>
+    }
+};
+
+<span class="kw">class</span> <span class="type">Archer</span> {
+    <span class="type">void</span> <span class="fn">TakeDamage</span>(<span class="type">float</span> raw) {
+<span class="bad-line">        health -= raw * (<span class="num">1.0f</span> - std::clamp(armor, <span class="num">0.0f</span>, <span class="num">1.0f</span>)); <span class="code-tag-bad">❌ Dupliqué</span></span>
+    }
+};</pre>
+        </div>
+
+        <div class="bg-slate-950 border border-emerald-900/50 rounded-xl flex flex-col overflow-hidden">
+          <div class="bg-emerald-950/40 border-b border-emerald-900/50 px-4 py-2 flex justify-between items-center text-xs font-bold text-emerald-400">
+            <span><i class="fa-solid fa-circle-check mr-1.5"></i> CODE CONFORME</span>
+            <span class="bg-emerald-900/60 text-emerald-200 px-2 py-0.5 rounded">Fonction Pure Centralisée</span>
+          </div>
+          <pre class="p-4 text-xs font-mono overflow-auto flex-1 leading-relaxed"><span class="kw">namespace</span> CombatRules {
+<span class="good-line">    [[nodiscard]] <span class="kw">inline</span> <span class="type">float</span> <span class="fn">CalculateDamage</span>(<span class="type">float</span> raw, <span class="type">float</span> armor) { <span class="code-tag-good">✅ Source unique</span></span>
+        <span class="kw">if</span> (raw &lt;= <span class="num">0.0f</span>) <span class="kw">return</span> <span class="num">0.0f</span>;
+        <span class="kw">const float</span> clampedArmor = std::clamp(armor, <span class="num">0.0f</span>, <span class="num">1.0f</span>);
+        <span class="kw">return</span> raw * (<span class="num">1.0f</span> - clampedArmor);
+    }
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 6: CONSIGNE EXERCICE 1 ==================== -->
+    <div class="slide slide-container w-full max-w-4xl h-full flex-col justify-center items-center space-y-6">
+      <div class="bg-sky-500/10 text-sky-400 px-4 py-1.5 rounded-full border border-sky-500/30 text-xs font-bold uppercase tracking-wider">
+        À vous de coder • 15 minutes
+      </div>
+      <h2 class="text-3xl font-extrabold text-white text-center">Exercice 1 : Clean Code &amp; Guard Clauses</h2>
+      <div class="bg-cardbg border border-bordercol p-6 rounded-2xl w-full space-y-4 text-sm text-slate-300">
+        <p><strong class="text-white">Objectif :</strong> Nettoyer la gestion des dégâts et des points de vie dans <code class="text-sky-300 font-mono">Warrior</code> et <code class="text-sky-300 font-mono">CombatRules</code>.</p>
+        <ul class="space-y-2 list-disc list-inside text-xs md:text-sm">
+          <li>Remplacer les <code class="text-sky-300">if</code> imbriqués par des <strong>Guard Clauses</strong> (ignorer les dégâts &lt;= 0, gérer la mort).</li>
+          <li>Borner l'armure entre <code class="text-sky-300">0.0f</code> et <code class="text-sky-300">1.0f</code> (100 %).</li>
+          <li>Extraire la formule dans <code class="text-sky-300">CombatRules::CalculateDamage(raw, armor)</code>, puis appeler cette fonction depuis <code class="text-sky-300">Warrior::TakeDamage()</code> au lieu de recalculer les dégâts localement (<strong>DRY</strong>).</li>
+        </ul>
+        <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg font-mono text-xs text-emerald-400">
+          Validation : ctest --test-dir build -C Debug -R "Ex1" --output-on-failure
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 7: EX 2 - POLYMORPHISME & FACTORY ==================== -->
+    <div class="slide slide-container w-full max-w-7xl h-full flex-col justify-between">
+      <div class="bg-cardbg border border-bordercol p-4 rounded-xl mb-3 flex items-start space-x-3">
+        <div class="bg-emerald-500/10 text-emerald-400 p-2.5 rounded-lg border border-emerald-500/20 shrink-0">
+          <i class="fa-solid fa-diagram-project text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Diapos Exercice 2 • Architecture</span>
+            <span class="text-slate-600">•</span>
+            <h3 class="text-white font-bold text-base">Interfaces, Polymorphisme &amp; Pattern Fabrique</h3>
+          </div>
+          <p class="text-slate-300 text-xs md:text-sm mt-1">
+            <strong>Règle :</strong> Le système de jeu ne doit pas connaître les classes concrètes (<code class="text-sky-300">Warrior</code>, <code class="text-sky-300">Archer</code>, <code class="text-sky-300">Mage</code>). Il manipule l'interface <code class="text-sky-300">ICharacter</code> et délègue la création à <code class="text-sky-300">CharacterFactory</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+        <div class="bg-slate-950 border border-red-900/50 rounded-xl flex flex-col overflow-hidden">
+          <div class="bg-red-950/40 border-b border-red-900/50 px-4 py-2 flex justify-between items-center text-xs font-bold text-red-400">
+            <span><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> CODE NON CONFORME</span>
+            <span class="bg-red-900/60 text-red-200 px-2 py-0.5 rounded">Couplage fort &amp; Pointeurs nus</span>
+          </div>
+          <pre class="p-4 text-xs font-mono overflow-auto flex-1 leading-relaxed"><span class="type">void</span> <span class="fn">RunTurn</span>(<span class="kw">const</span> std::string&amp; type) {
+<span class="bad-line">    <span class="kw">if</span> (type == <span class="str">"Warrior"</span>) { <span class="code-tag-bad">❌ Couplage concret</span></span>
+        Warrior* w = <span class="kw">new</span> Warrior();
+        w-&gt;Attack();
+        <span class="kw">delete</span> w; <span class="cm">// Risque de fuite</span>
+    } <span class="kw">else if</span> (type == <span class="str">"Mage"</span>) {
+        <span class="cm">// ...</span>
+    }
+}</pre>
+        </div>
+
+        <div class="bg-slate-950 border border-emerald-900/50 rounded-xl flex flex-col overflow-hidden">
+          <div class="bg-emerald-950/40 border-b border-emerald-900/50 px-4 py-2 flex justify-between items-center text-xs font-bold text-emerald-400">
+            <span><i class="fa-solid fa-circle-check mr-1.5"></i> CODE CONFORME (DIP + RAII)</span>
+            <span class="bg-emerald-900/60 text-emerald-200 px-2 py-0.5 rounded">ICharacter + CharacterFactory</span>
+          </div>
+          <pre class="p-4 text-xs font-mono overflow-auto flex-1 leading-relaxed"><span class="kw">struct</span> <span class="type">ICharacter</span> {
+    <span class="kw">virtual</span> ~<span class="type">ICharacter</span>() = <span class="kw">default</span>;
+    <span class="kw">virtual</span> std::string <span class="fn">Attack</span>() = <span class="num">0</span>;
+    <span class="kw">virtual</span> std::string <span class="fn">GetCharacterName</span>() <span class="kw">const</span> = <span class="num">0</span>;
+};
+
+<span class="type">void</span> <span class="fn">RunTurn</span>(CharacterType type) {
+<span class="good-line">    <span class="kw">auto</span> character = CharacterFactory::CreateCharacter(type); <span class="code-tag-good">✅ RAII unique_ptr</span></span>
+    <span class="kw">if</span> (character) {
+<span class="good-line">        character-&gt;Attack(); <span class="code-tag-good">✅ Polymorphisme pur</span></span>
+    }
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 8: PROBLEME DE COUPLAGE ==================== -->
+    <div class="slide slide-container w-full max-w-7xl h-full flex-col justify-center items-center space-y-4">
+      <div class="text-center space-y-2">
+        <span class="text-xs font-bold text-red-400 uppercase tracking-wider">Pattern Fabrique • Le problème</span>
+        <h2 class="text-3xl font-extrabold text-white">Couplage fort et création dispersée</h2>
+      </div>
+      <img src="factory-couplage-fort.jpeg" alt="Illustration du couplage fort, de la duplication de création et des dépendances complexes entre les clients et les classes de personnages" class="max-w-full max-h-[72vh] object-contain rounded-xl shadow-2xl">
+    </div>
+
+    <!-- ==================== SLIDE 9: SOLUTION AVEC LA FABRIQUE ==================== -->
+    <div class="slide slide-container w-full max-w-7xl h-full flex-col justify-center items-center space-y-4">
+      <div class="text-center space-y-2">
+        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Pattern Fabrique • La solution</span>
+        <h2 class="text-3xl font-extrabold text-white">Création centralisée et dépendances simplifiées</h2>
+      </div>
+      <img src="factory-couplage-faible.jpeg" alt="Illustration de la fabrique centralisant la création des personnages et réduisant le couplage avec le code client" class="max-w-full max-h-[72vh] object-contain rounded-xl shadow-2xl">
+    </div>
+
+    <!-- ==================== SLIDE 10: CONSIGNE EXERCICE 2 ==================== -->
+    <div class="slide slide-container w-full max-w-4xl h-full flex-col justify-center items-center space-y-6">
+      <div class="bg-emerald-500/10 text-emerald-400 px-4 py-1.5 rounded-full border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
+        À vous de coder • 20 minutes
+      </div>
+      <h2 class="text-3xl font-extrabold text-white text-center">Exercice 2 : Pattern Fabrique &amp; Polymorphisme</h2>
+      <div class="bg-cardbg border border-bordercol p-6 rounded-2xl w-full space-y-4 text-sm text-slate-300">
+        <p><strong class="text-white">Objectif :</strong> Découpler la création et l'utilisation des personnages via <code class="text-emerald-300 font-mono">ICharacter</code> et <code class="text-emerald-300 font-mono">CharacterFactory</code>.</p>
+        <ul class="space-y-2 list-disc list-inside text-xs md:text-sm">
+          <li><code class="text-emerald-300">ICharacter</code> et son implémentation par <code class="text-emerald-300">Warrior</code>, <code class="text-emerald-300">Archer</code> et <code class="text-emerald-300">Mage</code> sont déjà fournies : utilisez-les via l'interface dans la fabrique et <code class="text-emerald-300">GameSystem</code>.</li>
+          <li>Dans <code class="text-emerald-300">CharacterFactory::CreateCharacter(CharacterType)</code>, créer le personnage correspondant avec <code class="text-emerald-300">std::make_unique</code> et le retourner sous forme de <code class="text-emerald-300">std::unique_ptr&lt;ICharacter&gt;</code>; retourner <code class="text-emerald-300">nullptr</code> pour une valeur inconnue.</li>
+          <li>Dans <code class="text-emerald-300">GameSystem::RunTurn</code>, obtenir le personnage via la fabrique et appeler <code class="text-emerald-300">Attack()</code> sans dépendre des classes concrètes; retourner une chaîne vide si aucun personnage n'a pu être créé.</li>
+        </ul>
+        <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg font-mono text-xs text-emerald-400">
+          Validation : ctest --test-dir build -C Debug -R "Ex2" --output-on-failure
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 11: EX 3 - PREFERER LA COMPOSITION ==================== -->
+    <div class="slide slide-container w-full max-w-7xl h-full flex-col justify-between">
+      <div class="bg-cardbg border border-bordercol p-4 rounded-xl mb-3 flex items-start space-x-3">
+        <div class="bg-amber-500/10 text-amber-400 p-2.5 rounded-lg border border-amber-500/20 shrink-0">
+          <i class="fa-solid fa-cubes text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Diapos Exercice 3 • Clean Architecture</span>
+            <span class="text-slate-600">•</span>
+            <h3 class="text-white font-bold text-base">Préférer la composition à l'héritage</h3>
+          </div>
+          <p class="text-slate-300 text-xs md:text-sm mt-1">
+            <strong>Règle :</strong> Évitez de multiplier les classes de base (<code class="text-sky-300">RangedCharacter</code>, <code class="text-sky-300">MagicRangedCharacter</code>). Privilégiez la <strong>composition</strong> avec un composant dédié (<code class="text-sky-300">RangedAttackComponent</code>), comme le fait Unreal avec <code class="text-sky-300">UActorComponent</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+        <div class="bg-slate-950 border border-red-900/50 rounded-xl flex flex-col overflow-hidden">
+          <div class="bg-red-950/40 border-b border-red-900/50 px-4 py-2 flex justify-between items-center text-xs font-bold text-red-400">
+            <span><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> CODE NON CONFORME</span>
+            <span class="bg-red-900/60 text-red-200 px-2 py-0.5 rounded">Héritage rigide &amp; duplication</span>
+          </div>
+          <pre class="p-4 text-xs font-mono overflow-auto flex-1 leading-relaxed"><span class="bad-line"><span class="kw">class</span> <span class="type">RangedCharacter</span> : <span class="kw">public</span> <span class="type">ICharacter</span> { <span class="code-tag-bad">❌ Hiérarchie rigide</span></span>
+<span class="kw">protected</span>:
+    <span class="type">float</span> range{<span class="num">20.0f</span>};
+    <span class="type">bool</span> <span class="fn">IsInRange</span>(<span class="type">float</span> dist) <span class="kw">const</span> { <span class="kw">return</span> dist &lt;= range; }
+};
+
+<span class="cm">// Et si un Mage a aussi de la magie + attaque à distance ?</span>
+<span class="cm">// On tombe dans l'héritage multiple ou la duplication !</span></pre>
+        </div>
+
+        <div class="bg-slate-950 border border-emerald-900/50 rounded-xl flex flex-col overflow-hidden">
+          <div class="bg-emerald-950/40 border-b border-emerald-900/50 px-4 py-2 flex justify-between items-center text-xs font-bold text-emerald-400">
+            <span><i class="fa-solid fa-circle-check mr-1.5"></i> CODE CONFORME</span>
+            <span class="bg-emerald-900/60 text-emerald-200 px-2 py-0.5 rounded">Composition Modulaire</span>
+          </div>
+          <pre class="p-4 text-xs font-mono overflow-auto flex-1 leading-relaxed"><span class="kw">class</span> <span class="type">RangedAttackComponent</span> {
+<span class="kw">public</span>:
+    <span class="kw">explicit</span> <span class="type">RangedAttackComponent</span>(<span class="type">float</span> maxRange) : maxRange(maxRange) {}
+    <span class="type">bool</span> <span class="fn">CanHit</span>(<span class="type">float</span> distance) <span class="kw">const</span> { <span class="kw">return</span> distance &lt;= maxRange; }
+};
+
+<span class="kw">class</span> <span class="type">Archer</span> : <span class="kw">public</span> <span class="type">ICharacter</span> {
+<span class="good-line">    std::unique_ptr&lt;RangedAttackComponent&gt; rangedComp; <span class="code-tag-good">✅ Possède la capacité</span></span>
+};
+<span class="cm">// Mage possède aussi RangedAttackComponent. Warrior ne l'a pas !</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 12: COMPOSITION ET FABRIQUE ==================== -->
+    <div class="slide slide-container w-full max-w-7xl h-full flex-col justify-center items-center space-y-4">
+      <div class="text-center space-y-2">
+        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Composition • Extension du modèle</span>
+        <h2 class="text-3xl font-extrabold text-white">Une capacité partagée par composition</h2>
+      </div>
+      <img src="factory-couplage-faible-component.jpg" alt="La fabrique crée les personnages; Archer et Mage possèdent un composant d'attaque à distance, tandis que Warrior ne l'a pas" class="max-w-full max-h-[72vh] object-contain rounded-xl shadow-2xl">
+    </div>
+
+    <!-- ==================== SLIDE 13: CONSIGNE EXERCICE 3 ==================== -->
+    <div class="slide slide-container w-full max-w-4xl h-full flex-col justify-center items-center space-y-6">
+      <div class="bg-amber-500/10 text-amber-400 px-4 py-1.5 rounded-full border border-amber-500/30 text-xs font-bold uppercase tracking-wider">
+        À vous de coder • 15 minutes
+      </div>
+      <h2 class="text-3xl font-extrabold text-white text-center">Exercice 3 : Composition (<code class="text-amber-400">RangedAttackComponent</code>)</h2>
+      <div class="bg-cardbg border border-bordercol p-6 rounded-2xl w-full space-y-4 text-sm text-slate-300">
+        <p><strong class="text-white">Objectif :</strong> Donner la capacité d'attaque à distance uniquement à l'<code class="text-amber-300 font-mono">Archer</code> et au <code class="text-amber-300 font-mono">Mage</code>, sans polluer <code class="text-amber-300 font-mono">Warrior</code>.</p>
+        <ul class="space-y-2 list-disc list-inside text-xs md:text-sm">
+          <li>Créer <code class="text-amber-300">RangedAttackComponent</code> gérant la portée (<code class="text-amber-300">maxRange</code>) et la validation de tir.</li>
+          <li>Composer <code class="text-amber-300">Archer</code> et <code class="text-amber-300">Mage</code> avec ce composant.</li>
+          <li>Vérifier que <code class="text-amber-300">Warrior</code> ne possède pas de composant à distance.</li>
+        </ul>
+        <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg font-mono text-xs text-emerald-400">
+          Validation globale : ctest --test-dir build -C Debug --output-on-failure
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 14: CONCLUSION ==================== -->
+    <div class="slide slide-container w-full max-w-5xl h-full flex-col justify-center items-center text-center space-y-6">
+      <div class="bg-emerald-500/10 text-emerald-400 p-4 rounded-full border border-emerald-500/20">
+        <i class="fa-solid fa-flag-checkered text-3xl"></i>
+      </div>
+      <h2 class="text-3xl font-extrabold text-white">Bilan de l'Atelier (1h30)</h2>
+      <p class="text-slate-400 text-sm max-w-xl">
+        Vous avez appliqué les 3 piliers du C++ propre et découplé, directement transférables dans vos projets Unreal Engine :
+      </p>
+
+      <div class="bg-cardbg border border-bordercol p-6 rounded-2xl w-full max-w-lg text-left space-y-3">
+        <div class="flex items-center space-x-3 text-xs text-slate-200">
+          <span class="bg-sky-500/20 text-sky-400 w-6 h-6 rounded-full flex items-center justify-center font-bold shrink-0">1</span>
+          <span><strong>Clean Code :</strong> Guard Clauses, Early Returns et fonctions pures (DRY).</span>
+        </div>
+        <div class="flex items-center space-x-3 text-xs text-slate-200">
+          <span class="bg-emerald-500/20 text-emerald-400 w-6 h-6 rounded-full flex items-center justify-center font-bold shrink-0">2</span>
+          <span><strong>Clean Architecture :</strong> Découplage via <code class="text-emerald-300">ICharacter</code>, <code class="text-emerald-300">CharacterFactory</code> et RAII.</span>
+        </div>
+        <div class="flex items-center space-x-3 text-xs text-slate-200">
+          <span class="bg-amber-500/20 text-amber-400 w-6 h-6 rounded-full flex items-center justify-center font-bold shrink-0">3</span>
+          <span><strong>Composition :</strong> Composer les personnages avec des composants réutilisables pour leur donner uniquement les capacités dont ils ont besoin.</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER NAVBAR -->
+  <footer class="h-16 bg-cardbg border-t border-bordercol px-6 flex items-center justify-between z-20">
+    <div class="flex items-center space-x-4">
+      <button onclick="prevSlide()" id="btnPrev" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2 transition disabled:opacity-40">
+        <i class="fa-solid fa-chevron-left"></i>
+        <span>Précédent</span>
+      </button>
+      <button onclick="nextSlide()" id="btnNext" class="bg-sky-500 hover:bg-sky-400 text-slate-950 px-4 py-2 rounded-lg text-xs font-bold flex items-center space-x-2 transition disabled:opacity-40">
+        <span>Suivant</span>
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <div class="flex flex-col items-center flex-1 max-w-xs mx-4">
+      <span id="slideCounter" class="text-xs font-medium text-slate-400 mb-1">Diapositive 1 sur 10</span>
+      <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+        <div id="progressBar" class="bg-sky-500 h-full w-0 transition-all duration-300"></div>
+      </div>
+    </div>
+
+    <div class="text-xs text-slate-500 font-mono hidden sm:block">
+      Navigation : <kbd class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">←</kbd> <kbd class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">→</kbd> | Plein écran : <kbd class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">F</kbd>
+    </div>
+  </footer>
+
+  <!-- SCRIPT NAV -->
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const slideSelect = document.getElementById('slideSelect');
+    const slideCounter = document.getElementById('slideCounter');
+    const progressBar = document.getElementById('progressBar');
+    let currentSlide = 0;
+
+    const titles = [
+      "Accueil — Atelier 1h30 (CEFTI)",
+      "Setup — C++, CMake & doctest",
+      "Clean Code — Travailler en équipe",
+      "Clean Code — Principes généraux",
+      "Ex 1 (Diapo) — Guard Clauses",
+      "Ex 1 (Diapo) — DRY & Fonctions Pures",
+      "Ex 1 (Pratique) — Consignes",
+      "Ex 2 (Diapo) — Factory & Polymorphisme",
+      "Ex 2 — Problème de couplage",
+      "Ex 2 — Solution par la fabrique",
+      "Ex 2 (Pratique) — Consignes",
+      "Ex 3 (Diapo) — Préférer la composition",
+      "Ex 3 — Composition et fabrique",
+      "Ex 3 (Pratique) — Consignes",
+      "Bilan de l'Atelier"
+    ];
+
+    titles.forEach((title, index) => {
+      const opt = document.createElement('option');
+      opt.value = index;
+      opt.innerText = `${index}. ${title}`;
+      slideSelect.appendChild(opt);
+    });
+
+    function updateSlide() {
+      slides.forEach((slide, idx) => {
+        slide.classList.toggle('active', idx === currentSlide);
+      });
+
+      slideSelect.value = currentSlide;
+      slideCounter.innerText = `Diapositive ${currentSlide + 1} sur ${slides.length}`;
+      progressBar.style.width = `${((currentSlide + 1) / slides.length) * 100}%`;
+
+      document.getElementById('btnPrev').disabled = (currentSlide === 0);
+      document.getElementById('btnNext').disabled = (currentSlide === slides.length - 1);
+    }
+
+    function nextSlide() {
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function jumpToSlide(index) {
+      currentSlide = parseInt(index);
+      updateSlide();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullScreen();
+      }
+    });
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+
+    updateSlide();
+  </script>
+</body>
+</html>
